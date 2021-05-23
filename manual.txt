@@ -1,0 +1,1 @@
+"T" key moves moves all legs in swimming motion.
