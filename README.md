@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 # chess
-A playable chess game in OpenGL
-=======
-Lab 3 - Hello Triangle and Installing prerequisite software
-========================================
+A playable chess game in OpenGL.
 
 Lab machines
 ------------
@@ -190,4 +186,3 @@ Other versions of Visual Studio are listed on the CMake page
 - To add a commandline argument (`../resources`), right-click on `lab3` in
   the project explorer and then click on "Properties" and then click to
   "Debugging."
->>>>>>> 2d0f1239f60d6c0249446c4c4c15368dab0f4340
