@@ -5,9 +5,9 @@ C:\Users\User\Desktop\final proj\src\main.cpp(77,16): warning C4244: '=': conver
 C:\Users\User\Desktop\final proj\src\main.cpp(81,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\User\Desktop\final proj\src\main.cpp(85,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\User\Desktop\final proj\src\main.cpp(87,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(597,1): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\User\Desktop\final proj\src\main.cpp(616,22): warning C4018: '<': signed/unsigned mismatch
-C:\Users\User\Desktop\final proj\src\main.cpp(773,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\User\Desktop\final proj\src\main.cpp(596,13): warning C4101: 'RotateZ': unreferenced local variable
-C:\Users\User\Desktop\final proj\src\main.cpp(590,22): warning C4101: 'ball_movement': unreferenced local variable
+C:\Users\User\Desktop\final proj\src\main.cpp(721,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\User\Desktop\final proj\src\main.cpp(740,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(939,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(720,13): warning C4101: 'RotateZ': unreferenced local variable
+C:\Users\User\Desktop\final proj\src\main.cpp(714,22): warning C4101: 'ball_movement': unreferenced local variable
   lab shape.vcxproj -> C:\Users\User\Desktop\final proj\Debug\lab shape.exe

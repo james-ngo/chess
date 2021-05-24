@@ -97,6 +97,8 @@ public:
 
 camera mycam;
 
+//game state variables
+
 string board[8][8] = { {"WR", "WN", "WB", "WQ", "WK", "WB", "WN", "WR"},
 			 		   {"WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"},
 					   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
@@ -113,6 +115,12 @@ int pieceSelected = false;
 int current_player = 1;
 bool en_passant_available = false;
 vector<vector<int>> valid_moves;
+bool wqr = false; //white queenside rook moved?
+bool wkr = false; //white kingside rook moved?
+bool wk = false; //white king moved?
+bool bqr = false; //black queenside rook moved?
+bool bkr = false; //black kingside rook moved?
+bool bk = false; //black1 king moved?
 
 
 bool en_passant(int current_player, int i, int j, int direction) {
@@ -191,6 +199,8 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 			break;
 		}
 	}
+	temp_i = i;
+	temp_j = j;
 	while (valid_coord(temp_i + 1, temp_j - 1)) {
 		if (board[temp_j - 1][temp_i + 1] == "OO") {
 			vec = { temp_i + 1, temp_j - 1 };
@@ -207,6 +217,8 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 			break;
 		}
 	}
+	temp_i = i;
+	temp_j = j;
 	while (valid_coord(temp_i - 1, temp_j + 1)) {
 		if (board[temp_j + 1][temp_i - 1] == "OO") {
 			vec = { temp_i - 1, temp_j + 1 };
@@ -223,6 +235,8 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 			break;
 		}
 	}
+	temp_i = i;
+	temp_j = j;
 	while (valid_coord(temp_i - 1, temp_j - 1)) {
 		if (board[temp_j - 1][temp_i - 1] == "OO") {
 			vec = { temp_i - 1, temp_j - 1 };
@@ -238,6 +252,116 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 		else {
 			break;
 		}
+	}
+	return ret;
+}
+
+vector<vector<int>> valid_rook_moves(int current_player, int i, int j) {
+	vector<int> vec;
+	vector<vector<int>> ret;
+	int temp_i = i;
+	int temp_j = j;
+	while (valid_coord(temp_i + 1, temp_j)) {
+		if (board[temp_j][temp_i + 1] == "OO") {
+			vec = { temp_i + 1, temp_j};
+			ret.push_back(vec);
+			temp_i += 1;
+		}
+		else if (board[temp_j][temp_i + 1][0] == current_player_color(-1 * current_player)) {
+			vec = { temp_i + 1, temp_j };
+			ret.push_back(vec);
+			break;
+		}
+		else {
+			break;
+		}
+	}
+	temp_i = i;
+	while (valid_coord(temp_i - 1, temp_j)) {
+		if (board[temp_j][temp_i + 1] == "OO") {
+			vec = { temp_i - 1, temp_j };
+			ret.push_back(vec);
+			temp_i -= 1;
+		}
+		else if (board[temp_j][temp_i - 1][0] == current_player_color(-1 * current_player)) {
+			vec = { temp_i - 1, temp_j };
+			ret.push_back(vec);
+			break;
+		}
+		else {
+			break;
+		}
+	}
+	temp_i = i;
+	while (valid_coord(temp_i, temp_j + 1)) {
+		if (board[temp_j + 1][temp_i] == "OO") {
+			vec = { temp_i, temp_j + 1 };
+			ret.push_back(vec);
+			temp_j += 1;
+		}
+		else if (board[temp_j + 1][temp_i][0] == current_player_color(-1 * current_player)) {
+			vec = { temp_i, temp_j + 1 };
+			ret.push_back(vec);
+			break;
+		}
+		else {
+			break;
+		}
+	}
+	temp_j = j;
+	while (valid_coord(temp_i, temp_j - 1)) {
+		if (board[temp_j - 1][temp_i] == "OO") {
+			vec = { temp_i, temp_j - 1 };
+			ret.push_back(vec);
+			temp_j -= 1;
+		}
+		else if (board[temp_j - 1][temp_i][0] == current_player_color(-1 * current_player)) {
+			vec = { temp_i, temp_j - 1 };
+			ret.push_back(vec);
+			break;
+		}
+		else {
+			break;
+		}
+	}
+	return ret;
+}
+
+vector<vector<int>> valid_queen_moves(int current_player, int i, int j) {
+	vector<vector<int>> rmoves = valid_rook_moves(current_player, i, j);
+	vector<vector<int>> bmoves = valid_bishop_moves(current_player, i, j);
+	vector<vector<int>> ret(rmoves);
+	ret.insert(ret.end(), bmoves.begin(), bmoves.end());
+	return ret;
+}
+
+vector<vector<int>> valid_king_moves(int current_player, int i, int j) {
+	int x[9] = { 0, 0, -1, -1, -1, 1, 1, 1 };
+	int y[9] = { 1, -1, 0, -1, 1, 0, -1, 1 };
+	vector<int> vec;
+	vector<vector<int>> ret;
+	for (int k = 0; k < 8; k++) {
+		if (valid_coord(i + x[k], j + y[k]) && (board[j + y[k]][i + x[k]] == "OO" || board[j + y[k]][i + x[k]][0] == current_player_color(-1 * current_player))) {
+			vec = { i + x[k], j + y[k] };
+			ret.push_back(vec);
+		}
+	}
+	//check for castling
+	if (current_player == 1 && !wk && !wkr && board[j][i + 1] == "OO" && board[j][i + 2] == "OO") {
+		vec = { i + 2, j };
+		ret.push_back(vec);
+	}
+	if (current_player == 1 && !wk && !wqr && board[j][i - 1] == "OO" && board[j][i - 2] == "OO" && board[j][i - 3] == "OO") {
+		vec = { i - 2, j };
+		ret.push_back(vec);
+	}
+	if (current_player == -1 && !bk && !bkr && board[j][i + 1] == "OO" && board[j][i + 2] == "OO") {
+		vec = { i + 2, j };
+		ret.push_back(vec);
+	}
+	if (current_player == -1 && !bk && !bqr && board[j][i - 1] == "OO" && board[j][i - 2] == "OO" && board[j][i - 3] == "OO") {
+		vec = { i - 2, j };
+		ret.push_back(vec);
 	}
 	return ret;
 }
@@ -630,6 +754,36 @@ public:
 				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'P' && pieceToMove[0] != destination[0]) {
 					board[pieceToMove[1]][destination[0]] = "OO";
 				}
+				//check if rook or king has moved
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R' && pieceToMove[1] == 0 && pieceToMove[0] == 0) {
+					wkr = true;
+				}
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R' && pieceToMove[1] == 0 && pieceToMove[0] == 7) {
+					wqr = true;
+				}
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R' && pieceToMove[1] == 7 && pieceToMove[0] == 0) {
+					bkr = true;
+				}
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R' && pieceToMove[1] == 7 && pieceToMove[0] == 7) {
+					bqr = true;
+				}
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'K' && current_player == 1) {
+					wk = true;
+				}
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'K' && current_player == -1) {
+					bk = true;
+				}
+				//castle
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'K' && abs(pieceToMove[0] - destination[0]) == 2) {
+					if (destination[0] > 4) {
+						board[pieceToMove[1]][7] = "OO";
+						board[pieceToMove[1]][destination[0] - 1] = getString(current_player_color(current_player)) + getString('R');
+					}
+					else {
+						board[pieceToMove[1]][0] = "OO";
+						board[pieceToMove[1]][destination[0] + 1] = getString(current_player_color(current_player)) + getString('R');
+					}
+				}
 				board[destination[1]][destination[0]] = board[pieceToMove[1]][pieceToMove[0]];
 				board[pieceToMove[1]][pieceToMove[0]] = "OO";
 				current_player *= -1;
@@ -767,6 +921,18 @@ public:
 
 		if (pieceSelected && board[pieceToMove[1]][pieceToMove[0]][1] == 'B') {
 			valid_moves = valid_bishop_moves(current_player, pieceToMove[0], pieceToMove[1]);
+		}
+
+		if (pieceSelected && board[pieceToMove[1]][pieceToMove[0]][1] == 'R') {
+			valid_moves = valid_rook_moves(current_player, pieceToMove[0], pieceToMove[1]);
+		}
+
+		if (pieceSelected && board[pieceToMove[1]][pieceToMove[0]][1] == 'Q') {
+			valid_moves = valid_queen_moves(current_player, pieceToMove[0], pieceToMove[1]);
+		}
+
+		if (pieceSelected && board[pieceToMove[1]][pieceToMove[0]][1] == 'K') {
+			valid_moves = valid_king_moves(current_player, pieceToMove[0], pieceToMove[1]);
 		}
 
 		prog4->bind();
