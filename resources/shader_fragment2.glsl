@@ -13,7 +13,8 @@ void main()
 	color.a = 1;
 
 	vec3 n = normalize(vertex_normal);
-	vec3 lp = vec3(0, -10, -5);
+	vec3 lp = vec3(-10, -75, -10);
+
 	vec3 ld = normalize(vertex_pos - lp);
 	float diffuse = dot(n, ld);
 

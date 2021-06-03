@@ -43,6 +43,7 @@ bool valid_coord(int i, int j) {
 	return i >= 0 && i <= 7 && j >= 0 && j <= 7;
 }
 
+
 string getString(char x)
 {
 	string s(1, x);
@@ -107,6 +108,14 @@ string board[8][8] = { {"WR", "WN", "WB", "WQ", "WK", "WB", "WN", "WR"},
 					   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
 					   {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"},
 					   {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"} };
+string calcBoard[8][8] = { {"WR", "WN", "WB", "WQ", "WK", "WB", "WN", "WR"},
+					       {"WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"},
+						   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+						   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+						   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+						   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+						   {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"},
+						   {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"} };
 
 int selectedSquare[2] = { 0, 0 };
 int pieceToMove[2] = { -1, -1 };
@@ -114,6 +123,7 @@ int destination[2] = { -1, -1 };
 int pieceSelected = false;
 int current_player = 1;
 bool en_passant_available = false;
+int en_passant_pawn[2] = { -1, -1 };
 vector<vector<int>> valid_moves;
 bool wqr = false; //white queenside rook moved?
 bool wkr = false; //white kingside rook moved?
@@ -121,6 +131,8 @@ bool wk = false; //white king moved?
 bool bqr = false; //black queenside rook moved?
 bool bkr = false; //black kingside rook moved?
 bool bk = false; //black1 king moved?
+int white_king_pos[2] = { 0, 4 };
+int black_king_pos[2] = { 7, 4 };
 
 
 bool en_passant(int current_player, int i, int j, int direction) {
@@ -136,26 +148,26 @@ vector<vector<int>> valid_pawn_moves(int current_player, int i, int j) {
 	if (j == 1 || j == 6) {
 		vector<int> vec{ i, j + current_player};
 		int moves = 0;
-		while (board[vec[1]][vec[0]] == "OO" && moves < 2) {
+		while (calcBoard[vec[1]][vec[0]] == "OO" && moves < 2) {
 			ret.push_back(vec);
 			vec = { vec[0], vec[1] + current_player };
 			moves += 1;
 		}
 	}
 	else {
-		if (board[j + current_player][i] == "OO") {
+		if (calcBoard[j + current_player][i] == "OO") {
 			vector<int> vec = { i, j + current_player};
 			ret.push_back(vec);
 		}
 	}
 	// checking captures
 	vector<int> vec;
-	if (i < 7 && (board[j + current_player][i + 1][0] == current_player_color(-1 * current_player) ||
+	if (i < 7 && (calcBoard[j + current_player][i + 1][0] == current_player_color(-1 * current_player) ||
 				  en_passant(current_player, i, j, 1))) {
 		vec = { i + 1, j + current_player };
 		ret.push_back(vec);
 	}
-	if (i > 0 && (board[j + current_player][i - 1][0] == current_player_color(-1 * current_player) ||
+	if (i > 0 && (calcBoard[j + current_player][i - 1][0] == current_player_color(-1 * current_player) ||
 				  en_passant(current_player, i, j, -1))) {
 		vec = { i - 1, j + current_player };
 		ret.push_back(vec);
@@ -170,7 +182,7 @@ vector<vector<int>> valid_knight_moves(int current_player, int i, int j) {
 	vector<int> vec;
 	vector<vector<int>> ret;
 	for (int k = 0; k < 8; k++) {
-		if (valid_coord(i + x[k], j + y[k]) && (board[j + y[k]][i + x[k]] == "OO" || board[j + y[k]][i + x[k]][0] == current_player_color(-1 * current_player))) {
+		if (valid_coord(i + x[k], j + y[k]) && (calcBoard[j + y[k]][i + x[k]] == "OO" || calcBoard[j + y[k]][i + x[k]][0] == current_player_color(-1 * current_player))) {
 			vec = { i + x[k], j + y[k] };
 			ret.push_back(vec);
 		}
@@ -184,13 +196,13 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 	int temp_i = i;
 	int temp_j = j;
 	while (valid_coord(temp_i + 1, temp_j + 1)) {
-		if (board[temp_j + 1][temp_i + 1] == "OO") {
+		if (calcBoard[temp_j + 1][temp_i + 1] == "OO") {
 			vec = { temp_i + 1, temp_j + 1 };
 			ret.push_back(vec);
 			temp_i += 1;
 			temp_j += 1;
 		}
-		else if (board[temp_j + 1][temp_i + 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j + 1][temp_i + 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i + 1, temp_j + 1 };
 			ret.push_back(vec);
 			break;
@@ -202,13 +214,13 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 	temp_i = i;
 	temp_j = j;
 	while (valid_coord(temp_i + 1, temp_j - 1)) {
-		if (board[temp_j - 1][temp_i + 1] == "OO") {
+		if (calcBoard[temp_j - 1][temp_i + 1] == "OO") {
 			vec = { temp_i + 1, temp_j - 1 };
 			ret.push_back(vec);
 			temp_i += 1;
 			temp_j -= 1;
 		}
-		else if (board[temp_j - 1][temp_i + 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j - 1][temp_i + 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i + 1, temp_j - 1 };
 			ret.push_back(vec);
 			break;
@@ -220,13 +232,13 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 	temp_i = i;
 	temp_j = j;
 	while (valid_coord(temp_i - 1, temp_j + 1)) {
-		if (board[temp_j + 1][temp_i - 1] == "OO") {
+		if (calcBoard[temp_j + 1][temp_i - 1] == "OO") {
 			vec = { temp_i - 1, temp_j + 1 };
 			ret.push_back(vec);
 			temp_i -= 1;
 			temp_j += 1;
 		}
-		else if (board[temp_j + 1][temp_i - 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j + 1][temp_i - 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i - 1, temp_j + 1 };
 			ret.push_back(vec);
 			break;
@@ -238,13 +250,13 @@ vector<vector<int>> valid_bishop_moves(int current_player, int i, int j) {
 	temp_i = i;
 	temp_j = j;
 	while (valid_coord(temp_i - 1, temp_j - 1)) {
-		if (board[temp_j - 1][temp_i - 1] == "OO") {
+		if (calcBoard[temp_j - 1][temp_i - 1] == "OO") {
 			vec = { temp_i - 1, temp_j - 1 };
 			ret.push_back(vec);
 			temp_i -= 1;
 			temp_j -= 1;
 		}
-		else if (board[temp_j - 1][temp_i - 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j - 1][temp_i - 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i - 1, temp_j - 1 };
 			ret.push_back(vec);
 			break;
@@ -262,12 +274,12 @@ vector<vector<int>> valid_rook_moves(int current_player, int i, int j) {
 	int temp_i = i;
 	int temp_j = j;
 	while (valid_coord(temp_i + 1, temp_j)) {
-		if (board[temp_j][temp_i + 1] == "OO") {
+		if (calcBoard[temp_j][temp_i + 1] == "OO") {
 			vec = { temp_i + 1, temp_j};
 			ret.push_back(vec);
 			temp_i += 1;
 		}
-		else if (board[temp_j][temp_i + 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j][temp_i + 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i + 1, temp_j };
 			ret.push_back(vec);
 			break;
@@ -278,12 +290,12 @@ vector<vector<int>> valid_rook_moves(int current_player, int i, int j) {
 	}
 	temp_i = i;
 	while (valid_coord(temp_i - 1, temp_j)) {
-		if (board[temp_j][temp_i + 1] == "OO") {
+		if (calcBoard[temp_j][temp_i - 1] == "OO") {
 			vec = { temp_i - 1, temp_j };
 			ret.push_back(vec);
 			temp_i -= 1;
 		}
-		else if (board[temp_j][temp_i - 1][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j][temp_i - 1][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i - 1, temp_j };
 			ret.push_back(vec);
 			break;
@@ -294,12 +306,12 @@ vector<vector<int>> valid_rook_moves(int current_player, int i, int j) {
 	}
 	temp_i = i;
 	while (valid_coord(temp_i, temp_j + 1)) {
-		if (board[temp_j + 1][temp_i] == "OO") {
+		if (calcBoard[temp_j + 1][temp_i] == "OO") {
 			vec = { temp_i, temp_j + 1 };
 			ret.push_back(vec);
 			temp_j += 1;
 		}
-		else if (board[temp_j + 1][temp_i][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j + 1][temp_i][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i, temp_j + 1 };
 			ret.push_back(vec);
 			break;
@@ -310,12 +322,12 @@ vector<vector<int>> valid_rook_moves(int current_player, int i, int j) {
 	}
 	temp_j = j;
 	while (valid_coord(temp_i, temp_j - 1)) {
-		if (board[temp_j - 1][temp_i] == "OO") {
+		if (calcBoard[temp_j - 1][temp_i] == "OO") {
 			vec = { temp_i, temp_j - 1 };
 			ret.push_back(vec);
 			temp_j -= 1;
 		}
-		else if (board[temp_j - 1][temp_i][0] == current_player_color(-1 * current_player)) {
+		else if (calcBoard[temp_j - 1][temp_i][0] == current_player_color(-1 * current_player)) {
 			vec = { temp_i, temp_j - 1 };
 			ret.push_back(vec);
 			break;
@@ -341,29 +353,73 @@ vector<vector<int>> valid_king_moves(int current_player, int i, int j) {
 	vector<int> vec;
 	vector<vector<int>> ret;
 	for (int k = 0; k < 8; k++) {
-		if (valid_coord(i + x[k], j + y[k]) && (board[j + y[k]][i + x[k]] == "OO" || board[j + y[k]][i + x[k]][0] == current_player_color(-1 * current_player))) {
+		if (valid_coord(i + x[k], j + y[k]) && (calcBoard[j + y[k]][i + x[k]] == "OO" || calcBoard[j + y[k]][i + x[k]][0] == current_player_color(-1 * current_player))) {
 			vec = { i + x[k], j + y[k] };
 			ret.push_back(vec);
 		}
 	}
 	//check for castling
-	if (current_player == 1 && !wk && !wkr && board[j][i + 1] == "OO" && board[j][i + 2] == "OO") {
+	if (current_player == 1 && !wk && !wkr && calcBoard[j][i + 1] == "OO" && calcBoard[j][i + 2] == "OO") {
 		vec = { i + 2, j };
 		ret.push_back(vec);
 	}
-	if (current_player == 1 && !wk && !wqr && board[j][i - 1] == "OO" && board[j][i - 2] == "OO" && board[j][i - 3] == "OO") {
+	if (current_player == 1 && !wk && !wqr && calcBoard[j][i - 1] == "OO" && calcBoard[j][i - 2] == "OO" && calcBoard[j][i - 3] == "OO") {
 		vec = { i - 2, j };
 		ret.push_back(vec);
 	}
-	if (current_player == -1 && !bk && !bkr && board[j][i + 1] == "OO" && board[j][i + 2] == "OO") {
+	if (current_player == -1 && !bk && !bkr && calcBoard[j][i + 1] == "OO" && calcBoard[j][i + 2] == "OO") {
 		vec = { i + 2, j };
 		ret.push_back(vec);
 	}
-	if (current_player == -1 && !bk && !bqr && board[j][i - 1] == "OO" && board[j][i - 2] == "OO" && board[j][i - 3] == "OO") {
+	if (current_player == -1 && !bk && !bqr && calcBoard[j][i - 1] == "OO" && calcBoard[j][i - 2] == "OO" && calcBoard[j][i - 3] == "OO") {
 		vec = { i - 2, j };
 		ret.push_back(vec);
 	}
 	return ret;
+}
+
+vector<int> get_king_pos(int current_player) {
+	vector<int> vec;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (calcBoard[i][j] == getString(current_player_color(current_player)) + getString('K')) {
+				vec = { i, j };
+				return vec;
+			}
+		}
+	}
+}
+
+bool king_in_check(int current_player) {
+	vector<vector<int>> moves;
+	vector<int> current_king_pos = get_king_pos(current_player);
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (calcBoard[i][j][0] == current_player_color(-1 * current_player)) {
+				if (calcBoard[i][j][1] == 'P') {
+					moves = valid_pawn_moves(-1 * current_player, j, i);
+				}
+				if (calcBoard[i][j][1] == 'R') {
+					moves = valid_rook_moves(-1 * current_player, j, i);
+				}
+				if (calcBoard[i][j][1] == 'N') {
+					moves = valid_knight_moves(-1 * current_player, j, i);
+				}
+				if (calcBoard[i][j][1] == 'B') {
+					moves = valid_bishop_moves(-1 * current_player, j, i);
+				}
+				if (calcBoard[i][j][1] == 'Q') {
+					moves = valid_queen_moves(-1 * current_player, j, i);
+				}
+				for (int k = 0; k < moves.size(); k++) {
+					if (moves[k][1] == current_king_pos[0] && moves[k][0] == current_king_pos[1]) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 
 class Application : public EventCallbacks
@@ -449,26 +505,26 @@ public:
 		}
 		if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
 		{
-			if (selectedSquare[0] < 7) {
-				selectedSquare[0] += 1;
+			if (selectedSquare[0] + current_player <= 7 && selectedSquare[0] + current_player >= 0) {
+				selectedSquare[0] += current_player;
 			}
 		}
 		if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
 		{
-			if (selectedSquare[0] > 0) {
-				selectedSquare[0] -= 1;
+			if (selectedSquare[0] - current_player <= 7 && selectedSquare[0] - current_player >= 0) {
+				selectedSquare[0] -= current_player;
 			}
 		}
 		if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
 		{
-			if (selectedSquare[1] > 0) {
-				selectedSquare[1] -= 1;
+			if (selectedSquare[1] - current_player <= 7 && selectedSquare[1] - current_player >= 0) {
+				selectedSquare[1] -= current_player;
 			}
 		}
 		if (key == GLFW_KEY_UP && action == GLFW_PRESS)
 		{
-			if (selectedSquare[1] < 7) {
-				selectedSquare[1] += 1;
+			if (selectedSquare[1] + current_player <= 7 && selectedSquare[1] + current_player >= 0) {
+				selectedSquare[1] += current_player;
 			}
 		}
 	}
@@ -477,24 +533,24 @@ public:
 	// written
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
 	{
-		double posX, posY;
-		float newPt[2];
-		if (action == GLFW_PRESS)
-		{
-			glfwGetCursorPos(window, &posX, &posY);
-			std::cout << "Pos X " << posX <<  " Pos Y " << posY << std::endl;
+		//double posX, posY;
+		//float newPt[2];
+		//if (action == GLFW_PRESS)
+		//{
+		//	glfwGetCursorPos(window, &posX, &posY);
+		//	std::cout << "Pos X " << posX <<  " Pos Y " << posY << std::endl;
 
-			//change this to be the points converted to WORLD
-			//THIS IS BROKEN< YOU GET TO FIX IT - yay!
-			newPt[0] = 0;
-			newPt[1] = 0;
+		//	//change this to be the points converted to WORLD
+		//	//THIS IS BROKEN< YOU GET TO FIX IT - yay!
+		//	newPt[0] = 0;
+		//	newPt[1] = 0;
 
-			std::cout << "converted:" << newPt[0] << " " << newPt[1] << std::endl;
-			glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
-			//update the vertex array with the updated points
-			glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*6, sizeof(float)*2, newPt);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
+		//	std::cout << "converted:" << newPt[0] << " " << newPt[1] << std::endl;
+		//	glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
+		//	//update the vertex array with the updated points
+		//	glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*6, sizeof(float)*2, newPt);
+		//	glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//}
 	}
 
 	//if the window is resized, capture the new size and reset the viewport
@@ -633,7 +689,7 @@ public:
 		GLSL::checkVersion();
 
 		// Set background color.
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.52f, 0.8f, 0.92f, 1.0f);
 		// Enable z-buffer test.
 		glEnable(GL_DEPTH_TEST);
 		// Enable blending/transparency
@@ -713,7 +769,7 @@ public:
 		
 		glm::mat4 V, M, P, ball_movement; //View, Model and Perspective matrix
 
-		P = glm::perspective((float)(3.14159 / 4.), (float)((float)width/ (float)height), 0.1f, 1000.0f); //so much type casting... GLM metods are quite funny ones
+		P = glm::perspective((float)(3.141592 / 4.), (float)((float)width/ (float)height), 0.1f, 1000.0f); //so much type casting... GLM metods are quite funny ones
 
 		//animation with the model matrix:
 		float trans = 0;// sin(t) * 2;
@@ -723,11 +779,12 @@ public:
 
 		glm::mat4 liftCam = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f));
 		glm::mat4 rotateCam = glm::rotate(glm::mat4(1.0f), 0.75f, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 transCam = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 11.9f));
+		glm::mat4 spinCam = glm::rotate(glm::mat4(1.0f), 3.14159f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		// Draw the box using GLSL.
 		V = mycam.process(frametime);
 		V = rotateCam * liftCam * V;
-
 
 		// checker matrices
 
@@ -743,16 +800,18 @@ public:
 				}
 			}
 			if (!std::equal(std::begin(pieceToMove), std::end(pieceToMove), std::begin(destination)) && moveIsValid) {
+				//remove pawn in the event of en passant
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'P' && pieceToMove[0] != destination[0] && en_passant_available && destination[0] == en_passant_pawn[0]) {
+					board[en_passant_pawn[1]][en_passant_pawn[0]] = "OO";
+				}
 				//check for double move pawn first move
 				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'P' && abs(pieceToMove[1] - destination[1]) == 2) {
 					en_passant_available = true;
+					en_passant_pawn[0] = destination[0];
+					en_passant_pawn[1] = destination[1];
 				}
 				else {
 					en_passant_available = false;
-				}
-				//remove pawn in the event of en passant
-				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'P' && pieceToMove[0] != destination[0]) {
-					board[pieceToMove[1]][destination[0]] = "OO";
 				}
 				//check if rook or king has moved
 				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R' && pieceToMove[1] == 0 && pieceToMove[0] == 0) {
@@ -784,9 +843,29 @@ public:
 						board[pieceToMove[1]][destination[0] + 1] = getString(current_player_color(current_player)) + getString('R');
 					}
 				}
+				//check modifying king position
+				if (board[pieceToMove[1]][pieceToMove[0]][1] == 'K') {
+					if (current_player == 1) {
+						white_king_pos[0] = destination[0];
+						white_king_pos[1] = destination[1];
+					}
+				}
 				board[destination[1]][destination[0]] = board[pieceToMove[1]][pieceToMove[0]];
 				board[pieceToMove[1]][pieceToMove[0]] = "OO";
+				for (int x = 0; x < 8; x++) {
+					for (int y = 0; y < 8; y++) {
+						calcBoard[x][y] = board[x][y];
+					}
+				}
 				current_player *= -1;
+				if (current_player == -1) {
+					mycam.pos = vec3(0, 0, 11.9);
+					mycam.rot = vec3(0, 3.14159, 0);
+				}
+				else {
+					mycam.pos = vec3(0, 0, 0);
+					mycam.rot = vec3(0, 0, 0);
+				}
 			}
 			pieceToMove[0] = -1;
 			pieceToMove[1] = -1;
@@ -933,6 +1012,25 @@ public:
 
 		if (pieceSelected && board[pieceToMove[1]][pieceToMove[0]][1] == 'K') {
 			valid_moves = valid_king_moves(current_player, pieceToMove[0], pieceToMove[1]);
+		}
+
+		//check for checks
+		int i = 0;
+		while (i < valid_moves.size()) {
+			//remove moves such that the king is still in check
+			calcBoard[valid_moves[i][1]][valid_moves[i][0]] = calcBoard[pieceToMove[1]][pieceToMove[0]];
+			calcBoard[pieceToMove[1]][pieceToMove[0]] = "OO";
+			if (king_in_check(current_player)) {
+				valid_moves.erase(valid_moves.begin() + i);
+			}
+			else {
+				i++;
+			}
+			for (int x = 0; x < 8; x++) {
+				for (int y = 0; y < 8; y++) {
+					calcBoard[x][y] = board[x][y];
+				}
+			}
 		}
 
 		prog4->bind();

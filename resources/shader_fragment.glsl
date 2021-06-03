@@ -17,5 +17,5 @@ void main()
 	vec3 ld = normalize(vertex_pos - lp);
 	float diffuse = dot(n, ld);
 
-	color.rgb *= diffuse * 1.5;
+	color.rgb *= diffuse * 1.2;
 }

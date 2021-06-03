@@ -1,13 +1,16 @@
 ﻿  main.cpp
-C:\Users\User\Desktop\final proj\src\main.cpp(69,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(73,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(77,16): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(81,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(85,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(87,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\User\Desktop\final proj\src\main.cpp(721,1): warning C4305: 'initializing': truncation from 'double' to 'float'
-C:\Users\User\Desktop\final proj\src\main.cpp(740,22): warning C4018: '<': signed/unsigned mismatch
-C:\Users\User\Desktop\final proj\src\main.cpp(939,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\User\Desktop\final proj\src\main.cpp(720,13): warning C4101: 'RotateZ': unreferenced local variable
-C:\Users\User\Desktop\final proj\src\main.cpp(714,22): warning C4101: 'ball_movement': unreferenced local variable
+C:\Users\User\Desktop\final proj\src\main.cpp(70,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(74,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(78,16): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(82,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(86,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(88,14): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\User\Desktop\final proj\src\main.cpp(414,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(777,1): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\User\Desktop\final proj\src\main.cpp(797,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(1019,12): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(1037,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\User\Desktop\final proj\src\main.cpp(776,13): warning C4101: 'RotateZ': unreferenced local variable
+C:\Users\User\Desktop\final proj\src\main.cpp(770,22): warning C4101: 'ball_movement': unreferenced local variable
+C:\Users\User\Desktop\final proj\src\main.cpp(391): warning C4715: 'get_king_pos': not all control paths return a value
   lab shape.vcxproj -> C:\Users\User\Desktop\final proj\Debug\lab shape.exe
