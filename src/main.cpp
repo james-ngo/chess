@@ -422,6 +422,46 @@ bool king_in_check(int current_player) {
 	return false;
 }
 
+void reset_board() {
+	string startPosition[8][8] = { {"WR", "WN", "WB", "WQ", "WK", "WB", "WN", "WR"},
+								   {"WP", "WP", "WP", "WP", "WP", "WP", "WP", "WP"},
+								   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+								   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+								   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+								   {"OO", "OO", "OO", "OO", "OO", "OO", "OO", "OO"},
+								   {"BP", "BP", "BP", "BP", "BP", "BP", "BP", "BP"},
+								   {"BR", "BN", "BB", "BQ", "BK", "BB", "BN", "BR"} };
+	int oldSelectedSquare[2] = { 0, 0 };
+	int oldPieceToMove[2] = { -1, -1 };
+	int oldDestination[2] = { -1, -1 };
+	int oldEnPassant[2] = { -1, -1 };
+	int old_white_king_pos[2] = { 0, 4 };
+	int old_black_king_pos[2] = { 7, 4 };
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			board[x][y] = startPosition[x][y];
+			calcBoard[x][y] = startPosition[x][y];
+		}
+	}
+	memcpy(selectedSquare, oldSelectedSquare, sizeof(int) * 2);
+	memcpy(pieceToMove, oldPieceToMove, sizeof(int) * 2);
+	memcpy(destination, oldDestination, sizeof(int) * 2);
+	memcpy(en_passant_pawn, oldEnPassant, sizeof(int) * 2);
+	memcpy(white_king_pos, old_white_king_pos , sizeof(int) * 2);
+	memcpy(black_king_pos, old_black_king_pos, sizeof(int) * 2);
+	pieceSelected = false;
+	current_player = 1;
+	en_passant_available = false;
+	wqr = false; //white queenside rook moved?
+	wkr = false; //white kingside rook moved?
+	wk = false; //white king moved?
+	bqr = false; //black queenside rook moved?
+	bkr = false; //black kingside rook moved?
+	bk = false; //black1 king moved?
+	mycam.pos = vec3(0, 0, 0);
+	mycam.rot = vec3(0, 0, 0);
+}
+
 class Application : public EventCallbacks
 {
 
@@ -526,6 +566,10 @@ public:
 			if (selectedSquare[1] + current_player <= 7 && selectedSquare[1] + current_player >= 0) {
 				selectedSquare[1] += current_player;
 			}
+		}
+		if (key == GLFW_KEY_R && action == GLFW_PRESS)
+		{
+			reset_board();
 		}
 	}
 
@@ -745,6 +789,17 @@ public:
 		prog4->addUniform("campos");
 		prog4->addAttribute("vertPos");
 		prog4->addAttribute("vertNor");
+
+		prog5 = std::make_shared<Program>();
+		prog5->setVerbose(true);
+		prog5->setShaderNames(resourceDirectory + "/shader_vertex6.glsl", resourceDirectory + "/shader_fragment6.glsl");
+		prog5->init();
+		prog5->addUniform("P");
+		prog5->addUniform("V");
+		prog5->addUniform("M");
+		prog5->addUniform("campos");
+		prog5->addAttribute("vertPos");
+		prog5->addAttribute("vertNor");
 	}
 
 	/****DRAW
@@ -913,6 +968,8 @@ public:
 				// draw piece
 
 				glm::mat4 S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f, 0.4f, 0.4f));
+				
+				
 				T = glm::translate(glm::mat4(1.0f), glm::vec3(i * 0.7f - 2.5f, 0.5f, -0.7f * j - 0.5f));
 
 				M = T * TransZ * S_piece;
@@ -922,7 +979,7 @@ public:
 				glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 				glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
 
-				if (board[j][i][1] == 'R') {
+				if (board[j][i][1] == 'R' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
 					T = glm::translate(glm::mat4(1.0f), glm::vec3(i * 0.7f - 2.5f, 0.3f, -0.7f * j - 0.5f));
 					M = T * TransZ * S_piece;
@@ -932,7 +989,7 @@ public:
 					glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
 					rook.draw(prog);
 				}
-				if (board[j][i][1] == 'N') {
+				if (board[j][i][1] == 'N' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
 					T = glm::translate(glm::mat4(1.0f), glm::vec3(i * 0.7f - 2.5f, 0.3f, -0.7f * j - 0.5f));
 					M = T * TransZ * S_piece;
@@ -942,16 +999,16 @@ public:
 					glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
 					knight.draw(prog);
 				}
-				if (board[j][i][1] == 'B') {
+				if (board[j][i][1] == 'B' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					bishop.draw(prog);
 				}
-				if (board[j][i][1] == 'Q') {
+				if (board[j][i][1] == 'Q' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					queen.draw(prog);
 				}
-				if (board[j][i][1] == 'K') {
+				if (board[j][i][1] == 'K' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					king.draw(prog);
 				}
-				if (board[j][i][1] == 'P') {
+				if (board[j][i][1] == 'P' && !(pieceToMove[0] == i && pieceToMove[1] == j)) {
 					S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
 					T = glm::translate(glm::mat4(1.0f), glm::vec3(i * 0.7f - 2.5f, 0.3f, -0.7f * j - 0.5f));
 					M = T * TransZ * S_piece;
@@ -961,7 +1018,6 @@ public:
 					glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
 					pawn.draw(prog);
 				}
-
 				if (board[j][i][0] == 'B') {
 					prog2->unbind();
 				}
@@ -969,6 +1025,69 @@ public:
 					prog->unbind();
 				}
 			}
+		}
+		if (current_player == 1) {
+			prog->bind();
+		}
+		else {
+			prog2->bind();
+		}
+
+		// draw hovering selected piece
+		if (pieceSelected) {
+			glm::mat4 S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f, 0.4f, 0.4f));
+			glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(selectedSquare[0] * 0.7f - 2.5f, 1.0f, -0.7f * selectedSquare[1] - 0.5f));
+			M = T * TransZ * S_piece;
+			glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+			glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+			glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'R') {
+				S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
+				T = glm::translate(glm::mat4(1.0f), glm::vec3(selectedSquare[0] * 0.7f - 2.5f, 0.8f, -0.7f * selectedSquare[1] - 0.5f));
+				M = T * TransZ * S_piece;
+				glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+				glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+				glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+				glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
+				rook.draw(prog);
+			}
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'N') {
+				S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
+				T = glm::translate(glm::mat4(1.0f), glm::vec3(selectedSquare[0] * 0.7f - 2.5f, 0.8f, -0.7f * selectedSquare[1] - 0.5f));
+				M = T * TransZ * S_piece;
+				glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+				glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+				glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+				glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
+				knight.draw(prog);
+			}
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'B') {
+				bishop.draw(prog);
+			}
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'Q') {
+				queen.draw(prog);
+			}
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'K') {
+				king.draw(prog);
+			}
+			if (board[pieceToMove[1]][pieceToMove[0]][1] == 'P') {
+				S_piece = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
+				T = glm::translate(glm::mat4(1.0f), glm::vec3(selectedSquare[0] * 0.7f - 2.5f, 0.8f, -0.7f * selectedSquare[1] - 0.5f));
+				M = T * TransZ * S_piece;
+				glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+				glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+				glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+				glUniform3fv(prog->getUniform("campos"), 1, &mycam.pos[0]);
+				pawn.draw(prog);
+			}
+		}
+
+		if (current_player == 1) {
+			prog->bind();
+		}
+		else {
+			prog2->unbind();
 		}
 
 		prog3->bind();
@@ -1050,6 +1169,19 @@ public:
 		}
 		
 		prog4->unbind();
+
+		prog5->bind();
+		if (pieceSelected) {
+			glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(pieceToMove[0] * 0.7f - 2.5f, 0.1f, -0.7f * pieceToMove[1] - 0.5f));
+			M = T * TransZ * S_box;
+			glUniformMatrix4fv(prog5->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+			glUniformMatrix4fv(prog5->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+			glUniformMatrix4fv(prog5->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+			glUniform3fv(prog5->getUniform("campos"), 1, &mycam.pos[0]);
+			glBindVertexArray(VertexArrayID);
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, (void*)0);
+		}
+		prog5->unbind();
 	}
 };
 //******************************************************************************************
